@@ -6,12 +6,11 @@ import com.siddu.gamesense.Entities.User;
 import com.siddu.gamesense.Entities.UserGame;
 import com.siddu.gamesense.dto.GameMetadataCsvRow;
 import com.siddu.gamesense.dto.UserGameCsvRow;
-import com.siddu.gamesense.repository.GameMetadataRepository;
 import com.siddu.gamesense.repository.GameRepository;
 import com.siddu.gamesense.repository.UserGameRepository;
 import com.siddu.gamesense.repository.UserRepository;
 import com.siddu.gamesense.utils.CsvReader;
-import com.siddu.gamesense.utils.Csvdtomapper;
+import com.siddu.gamesense.utils.AutoMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -32,22 +31,19 @@ public class DataIngestionService {
     private final UserRepository userRepository;
     private final UserGameRepository userGameRepository;
     private final embeddingService embeddingService;
-    private final GameMetadataRepository gameMetadataRepository;
     private final CsvReader csvReader;
-    private final Csvdtomapper csvdtomapper;
+    private final AutoMapper csvdtomapper;
 
     @Autowired
     public DataIngestionService(CsvReader csvReader, GameRepository gameRepository,
                                 UserRepository userRepository,
                                 UserGameRepository userGameRepository, embeddingService embeddingService,
-                                GameMetadataRepository gameMetadataRepository,
-                                Csvdtomapper csvdtomapper) {
+                                AutoMapper csvdtomapper) {
         this.csvReader = csvReader;
         this.gameRepository = gameRepository;
         this.userRepository = userRepository;
         this.userGameRepository = userGameRepository;
         this.embeddingService = embeddingService;
-        this.gameMetadataRepository = gameMetadataRepository;
         this.csvdtomapper = csvdtomapper;
     }
 

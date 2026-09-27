@@ -42,7 +42,7 @@ spring:
 retrieval:
   embedding:
     dimension: 768
-    tok-k: 5
+    tok-k: 3
 
 data:
   path: ../data/

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-public class Csvdtomapper {
+public class AutoMapper {
 
     public GameMetadataCsvRow mapper(CSVRecord record) {
 
@@ -34,15 +34,10 @@ public class Csvdtomapper {
         );
     }
 
-    public EvalutionInputdto EvaluationMapper(CSVRecord record)  {
+    public String EvaluationMapper(CSVRecord record)  {
+                   return record.get("user_id");
 
-            return new EvalutionInputdto(
-                    record.get("user_id"),
-                    record.get("parent_asin"),
-                    Double.parseDouble(record.get("rating")),
-                    Long.parseLong(record.get("timestamp"))
 
-            );
 
     }
 

@@ -22,12 +22,10 @@ public class embeddingService {
         Title: %s
         Categories: %s
         Features: %s
-        Description: %s
         """.formatted(
                 row.title(),
                 row.categories(),
-                row.features(),
-                row.description()
+                row.features()
         );
 
         return embeddingModel.embed(document);

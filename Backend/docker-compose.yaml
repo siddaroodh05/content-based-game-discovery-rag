@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: gamesense-postgres
+    environment:
+      POSTGRES_DB: GameSense_Database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+    ports:
+      - "5433:5432"
+    volumes:
+      -  ./gamesense_data:/var/lib/postgresql/data
