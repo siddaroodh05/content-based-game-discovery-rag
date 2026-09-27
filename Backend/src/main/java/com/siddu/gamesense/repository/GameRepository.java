@@ -22,7 +22,6 @@ public interface GameRepository extends JpaRepository<Game, Long> {
             gm.title AS title,
             gm.categories AS categories,
             gm.features AS features,
-            gm.description AS description,
             gm.average_rating AS averageRating,
             gm.rating_number AS ratingNumber,
             gm.embedding <=> CAST(:embedding AS vector) AS distance
