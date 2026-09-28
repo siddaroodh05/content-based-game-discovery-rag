@@ -45,6 +45,6 @@ public class GameMetadata {
     private Integer ratingNumber;
 
     @JdbcTypeCode(SqlTypes.VECTOR)
-    @Array(length = 768)
+    @Array(length = 1024)
     private float[] embedding;
 }

@@ -1,5 +1,6 @@
 package com.siddu.gamesense.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,8 +23,13 @@ public class Game {
     @Column(name = "parent_asin", nullable = false, unique = true)
     private String parentAsin;
 
-    @OneToOne(mappedBy = "game", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private GameMetadata metadata;
+
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<GameChunk> chunks = new ArrayList<>();
 
     @OneToMany(mappedBy = "game")
     private List<UserGame> userGames = new ArrayList<>();
