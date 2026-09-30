@@ -44,7 +44,4 @@ public class GameMetadata {
     @Column(name = "rating_number")
     private Integer ratingNumber;
 
-    @JdbcTypeCode(SqlTypes.VECTOR)
-    @Array(length = 1024)
-    private float[] embedding;
 }
