@@ -8,7 +8,6 @@ import com.siddu.gamesense.utils.InstructionPrompts;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -36,29 +35,37 @@ public class UserReviewService {
                         pageable
                 );
 
+
         if(response.isEmpty()){
             return  null;
         }
-        String query=llmService.PraseQuery(instructionPrompts.prasegamereviewdto(response),
+
+        String query=llmService.parseQuery(instructionPrompts.prasegamereviewdto(response),
                 instructionPrompts.queryinstructions());
 
-        return  new RetrievedResult(query,retrivalService.GetRecommendedGames(query));
-
+        return   new RetrievedResult(
+                                query,
+                                retrivalService.GetRecommendedGames(query));
 
     }
 
     public RetrievedResult  getUserTopRatingGameReviews(String userId) {
         Pageable pageable = PageRequest.of(0, 3);
 
+
         List<UserGameReviewDTO> reviews=userGameRepository.findTopRatedUserReviews(userId, pageable);
+
         if(reviews.isEmpty()){
             return null;
         }
-        String query=llmService.PraseQuery(instructionPrompts.prasegamereviewdto(reviews),
+        String query=llmService.parseQuery(instructionPrompts.prasegamereviewdto(reviews),
                 instructionPrompts.queryinstructions());
 
+        return  new RetrievedResult(
+                                query,
+                                retrivalService.GetRecommendedGames(query));
 
-        return   new RetrievedResult(query,retrivalService.GetRecommendedGames(query));
+
     }
 
 

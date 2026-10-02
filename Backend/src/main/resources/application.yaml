@@ -9,8 +9,8 @@ spring:
     driver-class-name: org.postgresql.Driver
 
     hikari:
-      maximum-pool-size: 8
-      minimum-idle: 2
+      maximum-pool-size: 20
+      minimum-idle: 5
       max-lifetime: 300000
       idle-timeout: 120000
       connection-timeout: 30000
@@ -25,25 +25,30 @@ spring:
         format_sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
-  ai:
-    openai:
-      api-key: ${GROQ_API_KEY}
-      base-url: https://api.groq.com/openai/v1
-      chat:
-        options:
-          model: qwen/qwen3.8-27b
-          temperature: 0.2
 
+  ai:
     ollama:
       base-url: http://localhost:11434
       embedding:
-        model: nomic-embed-text
+        model: qwen3-embedding:0.6b
+        options:
+          keep-alive: 10m
 
-retrieval:
-  embedding:
-    dimension: 768
-    tok-k: 3
 
 data:
   path: ../data/
 
+ai:
+  huggingface:
+    api-key: ${HF_API_KEY}
+    base-url: https://router.huggingface.co/v1
+    chat:
+      model:  Qwen/Qwen3-32B
+      temperature: 0.2
+      max-tokens: 400
+      enable-thinking: false
+
+retrieval:
+  embedding:
+    dimension: 1024
+    tok-k: 3

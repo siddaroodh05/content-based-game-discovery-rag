@@ -47,5 +47,7 @@ Backend/.idea/
 # =========================
 # Local / Dataset files
 # =========================
-/data/
+/data/meta_Video_Games.jsonl
+/data/Video_Games.csv
 Backend/gamesense_data/
+Backend/target_test-classes

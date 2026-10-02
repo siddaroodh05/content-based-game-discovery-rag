@@ -14,27 +14,23 @@ public class InstructionPrompts {
 
     public String queryinstructions(){
         return """
-                Analyze the user's game reviews, ratings, and game metadata.
+                Generate exactly ONE search query representing 2–3 distinct important
+                preferences found in the provided games and reviews.
                 
-                Infer the user's actual game preferences.
+                Each preference should be a compact phrase containing the main semantic
+                keywords/features, for example:
+                - sci-fi multiplayer combat
+                - horror thriller with adaptive mechanics
+                - anime-style story-driven RPG
                 
-                Use review text and ratings as the primary signals.
-                Use the game title and features only to identify the gameplay
-                features, genres, themes, and mechanics associated with those preferences.
+                Do not combine unrelated preferences into one sentence.
+                Do not focus on only one game or one feature.
+                Prefer concrete gameplay mechanics, genres, themes, visual/style characteristics,
+                story characteristics, or multiplayer characteristics that appear meaningful
+                in the user's provided games/reviews.
                 
-                Positive reviews/ratings indicate things the user enjoys.
-                Negative reviews/ratings indicate things the user dislikes or wants to avoid.
-                
-                Do not assume every feature of a highly-rated game is a preference.
-                Do not treat features of a poorly-rated game as preferences.
-                
-                Generate one concise semantic search query representing the user's
-                overall game preferences.
-                
-                Do not mention specific game titles.
-                Do not explain your reasoning.
-                Return only the query.
-                Keep the query under 50 tokens.
+                The query should be concise, under 30 tokens.
+                Return ONLY the query as plain text.
                 """;
     }
     public String prasegamereviewdto(List<UserGameReviewDTO> reviewandgames){
@@ -63,12 +59,18 @@ public class InstructionPrompts {
                 - User preference query: {query}
                 - Top 3 retrieved games: {games}
                 
-                Evaluate each game independently based on how relevant it is to the user's overall preferences.
+                The query contains separate preference themes. Count a game as "good"
+                if it meaningfully matches ANY ONE of those themes. It does not need
+                to match the other themes.
                 
-                Count a game as "good" if it is a relevant recommendation and meaningfully matches the user's preferences.
-                Count it as "bad" if it has little or no meaningful relevance to the user's preferences.
+                Count as "bad" only if the game has little or no meaningful relevance
+                to any theme.
                 
-                Do not judge based only on rating or vector distance.
+                Judge based on gameplay, genre, mechanics, progression, themes, story,
+                multiplayer style, and other meaningful characteristics.
+                
+                Do not judge based only on word overlap, title similarity, rating,
+                popularity, or vector distance.
                 
                 Return ONLY valid JSON:
                 {
@@ -80,5 +82,35 @@ public class InstructionPrompts {
                 """;
     }
 
+    public String qualitycheckinstructions() {
+        return """
+        Evaluate the retrieved games against the user's query.
+
+        For each game, compare its title and features with the user's query.
+        Return the parentAsin of every game that meaningfully matches the query.
+
+        Consider the requested gameplay, genre, mechanics, setting, player mode,
+        or other important requirements.
+
+        Ignore superficial keyword matches, shared franchises, platforms,
+        ratings, and popularity.
+
+        IMPORTANT:
+        - Do not explain your reasoning.
+        - Return ONLY the matching parentAsin values.
+        - Separate multiple parentAsin values with commas.
+        - Do not add spaces, brackets, quotes, labels, or other text.
+        - If no games match, return exactly: null
+
+        Example with multiple matches:
+        B00005MKYU,B004D1Z3UO
+
+        Example with one match:
+        B00005MKYU
+
+        Example with no matches:
+        null
+        """;
+    }
 
 }

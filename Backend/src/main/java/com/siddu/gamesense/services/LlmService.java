@@ -1,27 +1,31 @@
 package com.siddu.gamesense.services;
 
 
-import com.siddu.gamesense.dto.LlmInput;
-import com.siddu.gamesense.dto.RetrievalQuality;
-import com.siddu.gamesense.dto.RetrievedResult;
-import com.siddu.gamesense.dto.TopRetrievals;
+import com.siddu.gamesense.dto.*;
+import com.siddu.gamesense.utils.InstructionPrompts;
 import com.siddu.gamesense.utils.RetrievalQualityPromptBuilder;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+
 @Service
 public class LlmService {
 
-    private final ChatClient chatClient;
-    private  final RetrievalQualityPromptBuilder retrievalQualityPromptBuilder;
-    public LlmService( @Qualifier("openAiChatModel")ChatModel chatModel,
-                     RetrievalQualityPromptBuilder retrievalQualityPromptBuilder) {
-        this.chatClient =ChatClient.builder(chatModel).build();
+    private final HuggingFaceChatService huggingFaceChatService;
+    private final RetrievalQualityPromptBuilder retrievalQualityPromptBuilder;
+    private final InstructionPrompts  instructionPrompts;
+
+    public LlmService(
+            HuggingFaceChatService huggingFaceChatService,
+            RetrievalQualityPromptBuilder retrievalQualityPromptBuilder,
+            InstructionPrompts instructionPrompts) {
+
+        this.huggingFaceChatService = huggingFaceChatService;
         this.retrievalQualityPromptBuilder = retrievalQualityPromptBuilder;
+        this.instructionPrompts = instructionPrompts;
     }
 
     @Retryable(
@@ -29,14 +33,25 @@ public class LlmService {
             maxAttempts = 3,
             backoff = @Backoff(delay = 30000, multiplier = 2)
     )
-    public String PraseQuery(String reviewandgames, String instructions){
+    public String parseQuery(
+            String reviewAndGames,
+            String instructions) {
 
-        return chatClient
-                .prompt()
-                .system(instructions)
-                .user(reviewandgames)
-                .call()
-                .content();
+        long start = System.currentTimeMillis();
+
+        String query = huggingFaceChatService.generateQuery(
+                instructions,
+                reviewAndGames
+        );
+
+        System.out.println(
+                "Query LLM time: " +
+                        (System.currentTimeMillis() - start) +
+                        " ms"
+        );
+
+
+        return query;
     }
 
     @Retryable(
@@ -45,7 +60,9 @@ public class LlmService {
             backoff = @Backoff(delay = 20000, multiplier = 2),
             listeners = "retrievalQualityRetryListener"
     )
-    public RetrievalQuality RetrievalQualityJudge(String instructions, RetrievedResult result) {
+    public RetrievalQuality RetrievalQualityJudge(
+            String instructions,
+            RetrievedResult result) {
 
         LlmInput input = new LlmInput(
                 result.query(),
@@ -58,12 +75,19 @@ public class LlmService {
                         ))
                         .toList()
         );
-        return chatClient
-                .prompt()
-                .system(instructions)
-                .user(retrievalQualityPromptBuilder.buildInput(input))
-                .call()
-                .entity(RetrievalQuality.class);
+
+        String userInput =
+                retrievalQualityPromptBuilder.buildInput(input);
+
+        return huggingFaceChatService.generateRetrievalQuality(
+                instructions,
+                userInput
+        );
+    }
+    public List<String>  filteroutRecommendedGames(List<RecommendedGameDTO> recommendedGames,String query) {
+        RetrievedResult input = new RetrievedResult(query,recommendedGames);
+
+        String userInput=retrievalQualityPromptBuilder.buildInputforretrieval(input);
+        return  huggingFaceChatService.checkretrievedquality(instructionPrompts.qualitycheckinstructions(),userInput);
     }
 }
-

@@ -109,8 +109,8 @@ public class EvalutionService {
 
             try {
 
-                log.info("waiting 35 seconds for next request ,evaluated : {}", userId);
-                Thread.sleep(35_000);
+                log.info("waiting 50 seconds for next request ,evaluated : {}", userId);
+                Thread.sleep(50_000);
 
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -130,6 +130,66 @@ public class EvalutionService {
         }
         return parentasins;
     }
+
+    public RetrievalPrecision calculateRetrievalPrecision() {
+
+       List<EvaluatedResult> evaluatedResults =
+                evalResultReadWriteService.loadEvaluatedResults();
+
+        int topRatedGood = 0;
+        int topRatedTotal = 0;
+
+        int recentBasedGood = 0;
+        int recentBasedTotal = 0;
+
+        for (EvaluatedResult result : evaluatedResults) {
+
+            RetrievalQuality topRated =
+                    result.TopRatedRetrieval();
+
+            RetrievalQuality recentBased =
+                    result.recentBasedRetrieval();
+
+            topRatedGood += topRated.goodRetrieval();
+            topRatedTotal +=
+                    topRated.goodRetrieval()
+                            + topRated.badRetrieval();
+
+            recentBasedGood += recentBased.goodRetrieval();
+            recentBasedTotal +=
+                    recentBased.goodRetrieval()
+                            + recentBased.badRetrieval();
+        }
+
+        double topRatedPrecision =
+                topRatedTotal == 0
+                        ? 0.0
+                        : (double) topRatedGood / topRatedTotal;
+
+        double recentBasedPrecision =
+                recentBasedTotal == 0
+                        ? 0.0
+                        : (double) recentBasedGood / recentBasedTotal;
+
+        int overallGood =
+                topRatedGood + recentBasedGood;
+
+        int overallTotal =
+                topRatedTotal + recentBasedTotal;
+
+        double overallPrecision =
+                overallTotal == 0
+                        ? 0.0
+                        : (double) overallGood / overallTotal;
+
+        return new RetrievalPrecision(
+                topRatedPrecision,
+                recentBasedPrecision,
+                overallPrecision
+        );
+
+    }
+
 
 
 

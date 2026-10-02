@@ -7,5 +7,6 @@ public record GameMetadataCsvRow (
     String features,
     String description,
     Double averageRating,
-    Integer ratingNumber)
+    Integer ratingNumber,
+    String thumb)
 {}

@@ -2,6 +2,8 @@ services:
   postgres:
     image: pgvector/pgvector:pg17
     container_name: gamesense-postgres
+    command: postgres -c shared_buffers=1GB -c effective_cache_size=2GB
+    shm_size: 1gb
     environment:
       POSTGRES_DB: GameSense_Database
       POSTGRES_USER: postgres
@@ -9,4 +11,4 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      -  ./gamesense_data:/var/lib/postgresql/data
+      - ./gamesense_data:/var/lib/postgresql/data

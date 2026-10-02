@@ -24,4 +24,14 @@ public class RetrievalQualityPromptBuilder {
             );
         }
     }
+
+    public String buildInputforretrieval(RetrievedResult result) {
+        try {
+            return objectMapper.writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(
+                    "Failed to serialize retrieval result", e
+            );
+        }
+    }
 }

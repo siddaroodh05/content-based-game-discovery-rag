@@ -1,9 +1,6 @@
 package com.siddu.gamesense.services;
 
-import com.siddu.gamesense.Entities.Game;
-import com.siddu.gamesense.Entities.GameMetadata;
-import com.siddu.gamesense.Entities.User;
-import com.siddu.gamesense.Entities.UserGame;
+import com.siddu.gamesense.Entities.*;
 import com.siddu.gamesense.dto.GameMetadataCsvRow;
 import com.siddu.gamesense.dto.UserGameCsvRow;
 import com.siddu.gamesense.repository.GameRepository;
@@ -15,10 +12,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,18 +32,21 @@ public class DataIngestionService {
     private final embeddingService embeddingService;
     private final CsvReader csvReader;
     private final AutoMapper csvdtomapper;
+    private final ChunkingService chunkingService;
 
     @Autowired
     public DataIngestionService(CsvReader csvReader, GameRepository gameRepository,
                                 UserRepository userRepository,
                                 UserGameRepository userGameRepository, embeddingService embeddingService,
-                                AutoMapper csvdtomapper) {
+                                AutoMapper csvdtomapper,
+                                ChunkingService chunkingService) {
         this.csvReader = csvReader;
         this.gameRepository = gameRepository;
         this.userRepository = userRepository;
         this.userGameRepository = userGameRepository;
         this.embeddingService = embeddingService;
         this.csvdtomapper = csvdtomapper;
+        this.chunkingService = chunkingService;
     }
 
     @Async
@@ -52,17 +54,16 @@ public class DataIngestionService {
 
         Set<String> existingParentAsins =
                 new HashSet<>(gameRepository.findAllParentAsins());
-        AtomicReference<Long> processed= new AtomicReference<>((long) 0);
+        AtomicReference<Long> processed = new AtomicReference<>((long) 0);
 
         csvReader.read("games_metadata.csv", record -> {
 
             String parentAsin = record.get("parent_asin");
 
             if (existingParentAsins.contains(parentAsin)) {
-               processed.updateAndGet(v -> v + 1);
+                processed.updateAndGet(v -> v + 1);
                 log.info("already processed games: {}", processed.get());
                 return;
-
             }
 
             GameMetadataCsvRow row = csvdtomapper.mapper(record);
@@ -70,9 +71,6 @@ public class DataIngestionService {
             Game game = Game.builder()
                     .parentAsin(row.parentAsin())
                     .build();
-
-
-            float[] embedding = embeddingService.embed(row);
 
             GameMetadata metadata = GameMetadata.builder()
                     .game(game)
@@ -82,18 +80,27 @@ public class DataIngestionService {
                     .features(row.features())
                     .averageRating(row.averageRating())
                     .ratingNumber(row.ratingNumber())
-                    .embedding(embedding)
+                    .thumbnail(row.thumb())
                     .build();
 
             game.setMetadata(metadata);
-            gameRepository.save(game);
+
+
+            List<GameChunk> chunks = chunkingService.buildChunks(game, row);
+            chunks.forEach(chunk -> {
+                float[] embedding = embeddingService.embed(chunk.getText());
+                chunk.setEmbedding(embedding);
+            });
+            game.setChunks(chunks);
+
+            gameRepository.save(game); // cascades to metadata + chunks
             existingParentAsins.add(game.getParentAsin());
-            log.info("Saved game: {}", parentAsin);
+            log.info("Saved game: {} with {} chunks", parentAsin, chunks.size());
         });
 
         log.info("completed ingesting games");
-
     }
+
 
     @Async
     public void ingestUserHistory() throws IOException {

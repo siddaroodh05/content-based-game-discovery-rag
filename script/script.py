@@ -4,19 +4,15 @@ import random
 from collections import defaultdict
 
 
-
 CORE_CSV = "Video_Games.csv"
 REVIEWS_JSONL = "Video_Games.jsonl"
 METADATA_JSONL = "meta_Video_Games.jsonl"
 
 HISTORY_OUTPUT = "history.csv"
-EVALUATION_OUTPUT = "evaluation.csv"
 METADATA_OUTPUT = "games_metadata.csv"
 
 NUM_USERS = 2500
 HISTORY_PER_USER = 8
-EVALUATION_PER_USER = 2
-TOTAL_PER_USER = HISTORY_PER_USER + EVALUATION_PER_USER
 
 RANDOM_SEED = 42
 
@@ -67,6 +63,18 @@ with open(METADATA_JSONL, "r", encoding="utf-8") as f:
             dropped_incomplete += 1
             continue
 
+        # Get the large image URL for UI display.
+        thumb = ""
+
+        images = product.get("images", [])
+
+        if isinstance(images, list) and images:
+
+            first_image = images[0]
+
+            if isinstance(first_image, dict):
+                thumb = str(first_image.get("large", "")).strip()
+
         valid_metadata[parent_asin] = {
             "parent_asin": parent_asin,
             "title": title,
@@ -77,13 +85,13 @@ with open(METADATA_JSONL, "r", encoding="utf-8") as f:
             "average_rating": product.get("average_rating", ""),
             "rating_number": product.get("rating_number", ""),
             "price": product.get("price", ""),
-            "store": product.get("store", "")
+            "store": product.get("store", ""),
+            "thumb": thumb
         }
 
 
 print(f"Valid + complete Video Game metadata: {len(valid_metadata)}")
 print(f"Dropped for missing title/categories/features/description: {dropped_incomplete}")
-
 
 
 print()
@@ -127,7 +135,6 @@ with open(REVIEWS_JSONL, "r", encoding="utf-8") as f:
 print(f"Interactions with usable (non-empty) review text: {len(review_text_lookup)}")
 
 
-
 print()
 print("Reading 5-core dataset...")
 
@@ -166,11 +173,11 @@ print(f"Users with valid + reviewed Video Game interactions: {len(user_interacti
 eligible_users = [
     user_id
     for user_id, interactions in user_interactions.items()
-    if len(interactions) >= TOTAL_PER_USER
+    if len(interactions) >= HISTORY_PER_USER
 ]
 
 print(
-    f"Users with at least {TOTAL_PER_USER} "
+    f"Users with at least {HISTORY_PER_USER} "
     f"qualifying interactions: {len(eligible_users)}"
 )
 
@@ -183,7 +190,6 @@ if effective_num_users < NUM_USERS:
     )
 
 
-
 random.seed(RANDOM_SEED)
 
 selected_users = random.sample(eligible_users, effective_num_users)
@@ -191,9 +197,7 @@ selected_users = random.sample(eligible_users, effective_num_users)
 print(f"Selected users: {len(selected_users)}")
 
 
-
 history_rows = []
-evaluation_rows = []
 
 selected_game_ids = set()
 
@@ -204,14 +208,10 @@ for user_id in selected_users:
     # Oldest -> newest
     interactions.sort(key=lambda x: x["timestamp"])
 
-    # Take TOTAL_PER_USER most recent qualifying interactions
-    selected_interactions = interactions[-TOTAL_PER_USER:]
+    # Take HISTORY_PER_USER most recent qualifying interactions
+    selected_interactions = interactions[-HISTORY_PER_USER:]
 
-    history = selected_interactions[:HISTORY_PER_USER]
-    evaluation = selected_interactions[HISTORY_PER_USER:]
-
-    history_rows.extend(history)
-    evaluation_rows.extend(evaluation)
+    history_rows.extend(selected_interactions)
 
     for interaction in selected_interactions:
         selected_game_ids.add(interaction["parent_asin"])
@@ -220,9 +220,7 @@ for user_id in selected_users:
 print()
 print("Interaction extraction complete.")
 print(f"History rows: {len(history_rows)}")
-print(f"Evaluation rows: {len(evaluation_rows)}")
 print(f"Unique games: {len(selected_game_ids)}")
-
 
 
 print()
@@ -249,14 +247,6 @@ with open(HISTORY_OUTPUT, "w", encoding="utf-8", newline="") as f:
     writer.writerows(trim(history_rows))
 
 
-print("Writing evaluation.csv...")
-
-with open(EVALUATION_OUTPUT, "w", encoding="utf-8", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=output_fields)
-    writer.writeheader()
-    writer.writerows(trim(evaluation_rows))
-
-
 print()
 print("Writing games_metadata.csv...")
 
@@ -270,7 +260,8 @@ metadata_fields = [
     "average_rating",
     "rating_number",
     "price",
-    "store"
+    "store",
+    "thumb"
 ]
 
 selected_metadata_rows = [
@@ -290,14 +281,12 @@ print("=" * 60)
 print("EXTRACTION COMPLETE")
 print("=" * 60)
 print(f"Valid + complete Video Games in metadata: {len(valid_metadata)}")
-print(f"Eligible users (>= {TOTAL_PER_USER} qualifying interactions): {len(eligible_users)}")
+print(f"Eligible users (>= {HISTORY_PER_USER} qualifying interactions): {len(eligible_users)}")
 print(f"Selected users:                {len(selected_users)}")
 print(f"History rows:                  {len(history_rows)}")
-print(f"Evaluation rows:               {len(evaluation_rows)}")
 print(f"Unique selected games:         {len(selected_game_ids)}")
 print(f"Metadata rows:                 {len(selected_metadata_rows)}")
 print()
 print("Files created:")
 print(f"  {HISTORY_OUTPUT}")
-print(f"  {EVALUATION_OUTPUT}")
 print(f"  {METADATA_OUTPUT}")

@@ -18,7 +18,7 @@ public class EvaluationUsers {
         this.csvWriter = csvWriter;
     }
 
-    public void createEvaluationfile() throws IOException {
+    public void createEvaluation() throws IOException {
         List<String> userIds = new ArrayList<>();
 
         csvReader.read("history.csv", record ->

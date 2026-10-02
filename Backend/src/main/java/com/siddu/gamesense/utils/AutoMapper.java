@@ -1,6 +1,5 @@
 package com.siddu.gamesense.utils;
 
-import com.siddu.gamesense.dto.EvalutionInputdto;
 import com.siddu.gamesense.dto.GameMetadataCsvRow;
 import com.siddu.gamesense.dto.UserGameCsvRow;
 import org.apache.commons.csv.CSVRecord;
@@ -20,7 +19,8 @@ public class AutoMapper {
                 record.get("features"),
                 record.get("description"),
                 Double.valueOf(record.get("average_rating")),
-                Integer.valueOf(record.get("rating_number"))
+                Integer.valueOf(record.get("rating_number")),
+                record.get("thumb")
         );
     }
 
