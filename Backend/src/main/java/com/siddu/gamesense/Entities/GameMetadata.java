@@ -44,4 +44,7 @@ public class GameMetadata {
     @Column(name = "rating_number")
     private Integer ratingNumber;
 
+    @Column(columnDefinition = "TEXT")
+    private String thumbnail;
+
 }
