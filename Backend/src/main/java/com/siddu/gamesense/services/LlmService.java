@@ -4,55 +4,53 @@ package com.siddu.gamesense.services;
 import com.siddu.gamesense.dto.*;
 import com.siddu.gamesense.utils.InstructionPrompts;
 import com.siddu.gamesense.utils.RetrievalQualityPromptBuilder;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 
 @Service
 public class LlmService {
 
-    private final HuggingFaceChatService huggingFaceChatService;
+
     private final RetrievalQualityPromptBuilder retrievalQualityPromptBuilder;
     private final InstructionPrompts  instructionPrompts;
+    private  final ChatClient chatClient;
+
 
     public LlmService(
-            HuggingFaceChatService huggingFaceChatService,
-            RetrievalQualityPromptBuilder retrievalQualityPromptBuilder,
-            InstructionPrompts instructionPrompts) {
 
-        this.huggingFaceChatService = huggingFaceChatService;
+            RetrievalQualityPromptBuilder retrievalQualityPromptBuilder,
+            InstructionPrompts instructionPrompts,
+            @Qualifier("openAiChatModel") ChatModel chatModel) {
+
         this.retrievalQualityPromptBuilder = retrievalQualityPromptBuilder;
         this.instructionPrompts = instructionPrompts;
+        this.chatClient = ChatClient.builder(chatModel)
+                .defaultOptions(OpenAiChatOptions.builder().maxTokens(2000))
+                .build();
     }
 
-    @Retryable(
-            retryFor = Exception.class,
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 30000, multiplier = 2)
-    )
     public String parseQuery(
             String reviewAndGames,
             String instructions) {
 
-        long start = System.currentTimeMillis();
+        return chatClient.prompt()
+                .system(instructions)
+                .user(reviewAndGames + "\n/no_think")
+                .call()
+                .content();
 
-        String query = huggingFaceChatService.generateQuery(
-                instructions,
-                reviewAndGames
-        );
-
-        System.out.println(
-                "Query LLM time: " +
-                        (System.currentTimeMillis() - start) +
-                        " ms"
-        );
-
-
-        return query;
     }
+
 
     @Retryable(
             retryFor = Exception.class,
@@ -79,15 +77,38 @@ public class LlmService {
         String userInput =
                 retrievalQualityPromptBuilder.buildInput(input);
 
-        return huggingFaceChatService.generateRetrievalQuality(
-                instructions,
-                userInput
-        );
+        return chatClient.prompt()
+                .system(instructions)
+                .user(userInput+ "\n/no_think")
+                .call()
+                .entity(RetrievalQuality.class);
+
+
     }
-    public List<String>  filteroutRecommendedGames(List<RecommendedGameDTO> recommendedGames,String query) {
+
+    public List<String>  filterOutRecommendedGames(List<RecommendedGameDTO> recommendedGames,String query) {
         RetrievedResult input = new RetrievedResult(query,recommendedGames);
 
         String userInput=retrievalQualityPromptBuilder.buildInputforretrieval(input);
-        return  huggingFaceChatService.checkretrievedquality(instructionPrompts.qualitycheckinstructions(),userInput);
+
+        String parentasins= chatClient.prompt()
+                .system(instructionPrompts.qualitycheckinstructions())
+                .user(userInput + "\n/no_think")
+                .call()
+                .content();
+
+        List<String> parentAsins;
+
+        if (parentasins == null || parentasins.trim().equalsIgnoreCase("null")) {
+            parentAsins = Collections.emptyList();
+        } else {
+            parentAsins = Arrays.stream(parentasins.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
+        }
+        return parentAsins;
+
+
     }
 }

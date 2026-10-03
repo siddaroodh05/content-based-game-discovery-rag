@@ -34,19 +34,17 @@ spring:
         options:
           keep-alive: 10m
 
+    openai:
+      api-key: ${HF_API_KEY}
+      base-url: https://router.huggingface.co/v1   # keep what already worked for you
+      chat:
+        model: Qwen/Qwen3-32B
+        temperature: 0.2
+        max-tokens: 2000
+
 
 data:
   path: ../data/
-
-ai:
-  huggingface:
-    api-key: ${HF_API_KEY}
-    base-url: https://router.huggingface.co/v1
-    chat:
-      model:  Qwen/Qwen3-32B
-      temperature: 0.2
-      max-tokens: 400
-      enable-thinking: false
 
 retrieval:
   embedding:
