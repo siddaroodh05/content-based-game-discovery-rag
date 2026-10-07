@@ -28,6 +28,7 @@ public class InstructionPrompts {
                 Prefer concrete gameplay mechanics, genres, themes, visual/style characteristics,
                 story characteristics, or multiplayer characteristics that appear meaningful
                 in the user's provided games/reviews.
+                Separate each preference with a comma.
                 
                 The query should be concise, under 30 tokens.
                 Return ONLY the query as plain text.

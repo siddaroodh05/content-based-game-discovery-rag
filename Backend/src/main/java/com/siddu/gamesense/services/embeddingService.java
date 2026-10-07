@@ -8,9 +8,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class embeddingService {
 
-    private static final String QUERY_INSTRUCTION =
-            "Instruct: Given a game search query, retrieve relevant game titles and descriptions\nQuery: ";
-
     private final EmbeddingModel embeddingModel;
 
     public embeddingService(

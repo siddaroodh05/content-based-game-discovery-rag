@@ -99,7 +99,7 @@ public class GamesenseController {
     }
 
     @PostMapping("/games/metadata")
-    public ResponseEntity<com.siddu.gamesense.dto.GameMetadata> GetGamemetadata(@RequestBody()GameMetadata request) {
+    public ResponseEntity<com.siddu.gamesense.dto.GameMetadata> getGameMetadata(@RequestBody()GameMetadata request) {
         return ResponseEntity.ok(gameDiscoveryService.getGameMetadata(request.ParentAsin()));
 
     }
@@ -115,8 +115,8 @@ public class GamesenseController {
     }
 
     @PostMapping("/games/query")
-    public ResponseEntity<List<GameCardDTO>> getgamesoncustomquery(@RequestBody() CustomQueryRequest request) {
-        return ResponseEntity.ok(retrivalService.GetRecommendedGamesonuserQuery(request.query()));
+    public ResponseEntity<List<GameCardDTO>> getGamesOnCustomQuery(@RequestBody() CustomQueryRequest request) {
+        return ResponseEntity.ok(retrivalService.getRecommendedGamesOnUserQuery(request.query()));
 
 
     }

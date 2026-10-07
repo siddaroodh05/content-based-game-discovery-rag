@@ -5,8 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 
-import java.nio.charset.StandardCharsets;
-
 @Configuration
 public class JacksonConfig {
 

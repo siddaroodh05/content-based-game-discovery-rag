@@ -43,11 +43,11 @@ public class RetrivalService {
 
     }
     @Transactional
-    public List<GameCardDTO> GetRecommendedGamesonuserQuery(String query) {
+    public List<GameCardDTO> getRecommendedGamesOnUserQuery(String query) {
 
         entityManager.createNativeQuery("SET LOCAL hnsw.ef_search = 100").executeUpdate();
         List<RecommendedGameDTO> recommendedGames =gameRepository.findSimilarGames(embeddingService.embed(query), topK, 100);
-        List<String> games=llmService.filteroutRecommendedGames(recommendedGames,query);
+        List<String> games=llmService.filterOutRecommendedGames(recommendedGames,query);
         if (games.isEmpty()) {
             return List.of();
         }

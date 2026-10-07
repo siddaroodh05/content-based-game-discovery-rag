@@ -37,8 +37,6 @@ public class AutoMapper {
     public String EvaluationMapper(CSVRecord record)  {
                    return record.get("user_id");
 
-
-
     }
 
 
