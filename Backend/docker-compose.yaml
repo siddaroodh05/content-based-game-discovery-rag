@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: GameSense_Database
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 12345
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5433:5432"
     volumes:

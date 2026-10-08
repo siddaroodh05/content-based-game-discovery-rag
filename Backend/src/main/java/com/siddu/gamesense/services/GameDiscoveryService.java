@@ -1,6 +1,7 @@
 package com.siddu.gamesense.services;
 
 import com.siddu.gamesense.Entities.Game;
+import com.siddu.gamesense.Exceptions.GamenotfoundException;
 import com.siddu.gamesense.dto.GameCardDTO;
 import com.siddu.gamesense.dto.GameMetadata;
 import com.siddu.gamesense.repository.GameRepository;
@@ -33,7 +34,7 @@ public class GameDiscoveryService {
 
     public GameMetadata  getGameMetadata(String ParentAasin){
 
-        Game game=gameRepository.findByParentAsinWithMetadata(ParentAasin).orElseThrow(()-> new RuntimeException("Game not found"));
+        Game game=gameRepository.findByParentAsinWithMetadata(ParentAasin).orElseThrow(()-> new GamenotfoundException("Game not found"));
 
         return new GameMetadata(game.getMetadata().getTitle(),
                 game.getMetadata().getThumbnail(),

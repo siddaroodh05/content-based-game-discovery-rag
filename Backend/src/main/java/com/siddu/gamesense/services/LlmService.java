@@ -7,6 +7,7 @@ import com.siddu.gamesense.utils.RetrievalQualityPromptBuilder;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -53,10 +54,10 @@ public class LlmService {
 
 
     @Retryable(
-            retryFor = Exception.class,
+            retryFor = RuntimeException.class,
+            noRetryFor = NonTransientAiException.class,   // 4xx, including 429, bad key, invalid request
             maxAttempts = 3,
-            backoff = @Backoff(delay = 20000, multiplier = 2),
-            listeners = "retrievalQualityRetryListener"
+            backoff = @Backoff(delay = 1000, multiplier = 2)
     )
     public RetrievalQuality RetrievalQualityJudge(
             String instructions,

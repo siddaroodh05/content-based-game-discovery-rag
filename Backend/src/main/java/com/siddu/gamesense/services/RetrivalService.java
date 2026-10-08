@@ -1,7 +1,7 @@
 package com.siddu.gamesense.services;
 
 
-import com.siddu.gamesense.dto.ChunkDebugDTO;
+
 import com.siddu.gamesense.dto.GameCardDTO;
 import com.siddu.gamesense.dto.RecommendedGameDTO;
 import com.siddu.gamesense.repository.GameRepository;
@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -45,8 +44,9 @@ public class RetrivalService {
     @Transactional
     public List<GameCardDTO> getRecommendedGamesOnUserQuery(String query) {
 
+        float[] embed=embeddingService.embed(query);
         entityManager.createNativeQuery("SET LOCAL hnsw.ef_search = 100").executeUpdate();
-        List<RecommendedGameDTO> recommendedGames =gameRepository.findSimilarGames(embeddingService.embed(query), topK, 100);
+        List<RecommendedGameDTO> recommendedGames =gameRepository.findSimilarGames(embed, topK, 100);
         List<String> games=llmService.filterOutRecommendedGames(recommendedGames,query);
         if (games.isEmpty()) {
             return List.of();

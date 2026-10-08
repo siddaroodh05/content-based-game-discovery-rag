@@ -1,6 +1,7 @@
 package com.siddu.gamesense.services;
 
 
+import com.siddu.gamesense.Exceptions.ReviewsNotFoundException;
 import com.siddu.gamesense.dto.RetrievedResult;
 import com.siddu.gamesense.dto.UserGameReviewDTO;
 import com.siddu.gamesense.repository.UserGameRepository;
@@ -37,7 +38,7 @@ public class UserReviewService {
 
 
         if(response.isEmpty()){
-            return  null;
+            throw new ReviewsNotFoundException("user dont have reviews");
         }
 
         String query=llmService.parseQuery(instructionPrompts.prasegamereviewdto(response),
@@ -56,7 +57,7 @@ public class UserReviewService {
         List<UserGameReviewDTO> reviews=userGameRepository.findTopRatedUserReviews(userId, pageable);
 
         if(reviews.isEmpty()){
-            return null;
+            throw new ReviewsNotFoundException("user dont have reviews");
         }
         String query=llmService.parseQuery(instructionPrompts.prasegamereviewdto(reviews),
                 instructionPrompts.queryinstructions());

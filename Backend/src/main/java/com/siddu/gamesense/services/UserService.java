@@ -1,6 +1,7 @@
 package com.siddu.gamesense.services;
 
 import com.siddu.gamesense.Entities.User;
+import com.siddu.gamesense.Exceptions.UserNotFoundException;
 import com.siddu.gamesense.dto.LoginResponse;
 import com.siddu.gamesense.dto.Request.LoginRequest;
 import com.siddu.gamesense.dto.Request.UserreviewsRequest;
@@ -34,7 +35,7 @@ public class UserService {
     public LoginResponse login (LoginRequest loginRequest) {
 
         User user=userRepository.findByUserId(loginRequest.userId()).orElseThrow(
-                ()->new RuntimeException("User not found!")
+                ()->new UserNotFoundException("User not found!")
         );
         return  new LoginResponse(user.getUserId());
     }

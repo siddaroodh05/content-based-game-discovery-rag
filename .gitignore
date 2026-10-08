@@ -51,3 +51,5 @@ Backend/.idea/
 /data/Video_Games.csv
 Backend/gamesense_data/
 Backend/target_test-classes
+frontend/.env
+frontend/node_modules
